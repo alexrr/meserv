@@ -19,16 +19,17 @@ init([]) ->
 ppr() ->
   receive
     {From, Counter, do_a_flip} ->
-      printMsg_recive(do_a_flip, self(), Counter, From);
+      printMsg_recive("~p: recieved [do_a_flip] ~p from ~p\n", [self(), Counter, From]);
     {From, Counter, fish} ->
-      printMsg_recive(fish, self(), Counter, From);
+      printMsg_recive("~p: recieved [fish] ~p from ~p\n", [self(), Counter, From]);
     _ ->
-      io:format("~p: Heh, we're smarter than you humans.~n", [self()])
+      printMsg_recive("~p: recieved uknown message\n", [self()])
   end,
   ppr().
 
-printMsg_recive(Msg, Pid, Counter, From) ->
-  Fmt = lists:flatten(io_lib:format("~p: recieved msg [~p] ~p from ~p\n", [Pid, Counter, Msg, From])),
-  Fmt,
+printMsg_recive(Str, Args) ->
+  Fmt = lists:flatten(io_lib:format(Str, Args)),
+  io:fwrite(Fmt),
   gslogger:log_str(Fmt),
   ok.
+
