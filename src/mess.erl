@@ -23,21 +23,22 @@ start() ->
   io:format(" Process reciever ~p started\n Process sender ~p started\n", [Pid1, Pid2]).
 
 sender(Pid, TypeMsg, Counter) ->
-  printMsg_send("~p: try send MSG: id=[~p] type=[~p] from ~p\n", [self(), Counter, TypeMsg, Pid]),
+  write_log_Msg("~p: try send MSG: id=[~p] type=[~p] from ~p\n", [self(), Counter, TypeMsg, Pid]),
   if Counter < 15 ->
     case TypeMsg of
       0 -> Pid ! {self(), Counter, do_a_flip}, NextMsg = 1;
       1 -> Pid ! {self(), Counter, fish}, NextMsg = 2;
-      2 -> Pid ! {self(), Counter, blah_blah}, NextMsg = 0;
+      2 -> Pid ! {self(), Counter, blah_blah}, NextMsg = 3;
+      3 -> Pid ! {self(), Counter, 555}, NextMsg = 0;
       _ -> NextMsg = 0
     end,
     sleep(5),
     sender(Pid, NextMsg, Counter + 1);
     true ->
-      printMsg_send("~p: Counter exeed", [self()])
+      write_log_Msg("~p: Counter exeed", [self()])
   end.
 
-printMsg_send(Str, Args) ->
+write_log_Msg(Str, Args) ->
   Fmt = lists:flatten(io_lib:format(Str, Args)),
   io:fwrite(Fmt),
   gslogger:log_str(Fmt),
