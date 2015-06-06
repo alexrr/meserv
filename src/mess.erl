@@ -14,7 +14,7 @@
 -compile(export_all).
 
 start() ->
-  %% ok  222
+  %% ok  333
   gslogger:start_link("gnlogger.log"),
   gslogger:truncate(),
   gslogger:log_str(ok),
