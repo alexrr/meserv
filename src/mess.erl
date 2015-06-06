@@ -16,7 +16,7 @@
 start() ->
   %% ok  333
   %% ddd
-  gslogger:start_link("gnlogger.log"),
+  gslogger:start_link("log\\gnlogger.log"),
   gslogger:truncate(),
   gslogger:log_str(ok),
   gslogger:log_str("Start sender"),
