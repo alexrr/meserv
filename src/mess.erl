@@ -20,10 +20,10 @@ start() ->
   gslogger:log_str(ok),
   gslogger:log_str("Start sender"),
   {ok, Pid1} = messr:init([]),
-  Pid2 = spawn(fun() -> sender(Pid1, 0, 100, 0) end),
+  Pid2 = spawn(fun() -> sender(Pid1, 0, 40, 0, 12) end),
   io:format(" Process reciever ~p started\n Process sender ~p started\n", [Pid1, Pid2]).
 
-sender(Pid, TypeMsg, MaxCounter, Counter) ->
+sender(Pid, TypeMsg, MaxCounter, Counter, PauseCounter) ->
   write_log_Msg("~p: try send MSG: id=[~p] type=[~p] from ~p\n", [self(), Counter, TypeMsg, Pid]),
   if Counter < MaxCounter ->
     case TypeMsg of
@@ -33,10 +33,10 @@ sender(Pid, TypeMsg, MaxCounter, Counter) ->
       3 -> Pid ! {self(), Counter, 555}, NextMsg = 0;
       _ -> NextMsg = 0
     end,
-    if Counter rem 12 == 0->  sleep(25);
+    if Counter rem PauseCounter == 0 -> sleep(25);
       true ->  sleep(5)
     end,
-    sender(Pid, NextMsg, MaxCounter, Counter + 1);
+    sender(Pid, NextMsg, MaxCounter, Counter + 1, PauseCounter);
     true ->
       stopping(Pid)
   end.

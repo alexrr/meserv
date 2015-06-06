@@ -22,9 +22,6 @@ i32(Int) when integer(Int) ->
     (Int bsr 8) band 255,
     Int band 255].
 
-integer(Int) ->
-  error(not_implemented).
-
 getint32(F) ->
   {ok, B} = file:read(F, 4),
   i32(B).
