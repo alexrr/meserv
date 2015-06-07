@@ -17,6 +17,7 @@ start() ->
   %% ok  333
   %% ddd
 	%% new line for test
+  gambol(),
   file:make_dir("log"),
   gslogger:start_link("log\\gnlogger.log"),
   gslogger:truncate(),
@@ -59,6 +60,10 @@ write_log_Msg(Str, Args) ->
   io:fwrite(Fmt),
   gslogger:log_str(Fmt),
   ok.
+
+gambol()->
+    io:fwrite("\nHello!\n"),
+	ok.
 
 
 
