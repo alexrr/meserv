@@ -16,6 +16,7 @@
 start() ->
   %% ok  333
   %% ddd
+	%% new line for test
   file:make_dir("log"),
   gslogger:start_link("log\\gnlogger.log"),
   gslogger:truncate(),
