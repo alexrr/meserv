@@ -18,6 +18,7 @@ start() ->
   %% ddd
 	%% new line for test
   gambol(),
+  megaf(),
   file:make_dir("log"),
   gslogger:start_link("log\\gnlogger.log"),
   gslogger:truncate(),
@@ -63,9 +64,12 @@ write_log_Msg(Str, Args) ->
   ok.
 
 gambol()->
-    io:fwrite("\nHello!\n"),
+    io:fwrite("\nHello Gambol!\n"),
 	ok.
 
+megaf()->
+    io:fwrite("\nHello MegaF!\n"),
+	ok.
 
 
 
