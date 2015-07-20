@@ -17,6 +17,7 @@ start() ->
   %% ok  333
   %% ddd
 	%% new line for test
+	%% mega line
   gambol(),
   file:make_dir("log"),
   gslogger:start_link("log\\gnlogger.log"),
