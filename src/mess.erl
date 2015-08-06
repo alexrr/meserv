@@ -7,7 +7,7 @@
 %%% Created : 20.05.2015 23:23
 %%%-------------------------------------------------------------------
 
--define(VERSION, 131).
+-define(VERSION, 133).
 -module(mess).
 -author("alexr").
 -import(string, [join/2, concat/2, str/2]).
@@ -28,6 +28,7 @@ start() ->
    write_log_Msg("~p: Ok\n",[self()]),
    write_log_Msg("~p: Starting sender\n", [self()]),
    Pid2 = spawn(fun() -> sender(messr_ch, 0, 0,{9, 3}) end),
+   sleep(2),
    write_log_Msg("~p: Process sender started on ~p\n",[self(),Pid2]),
    write_log_Msg("~p: Starting reciever\n", [self()]),
    messr_sv:start_link(),
@@ -39,24 +40,33 @@ start() ->
    write_log_Msg("~p: Process reciever started on ~p", [self(),Pid1]).
 
 sender(Reciver, TypeMsg, Counter, Params) ->
+  if Counter == 0 ->
+    write_log_Msg("~p: sender ok\n",[self()])
+  end,
   Pid = whereis(Reciver),
-  {MaxCounter,PauseCounter}  = Params,
-  write_log_Msg("~p: try send MSG: id=[~p] type=[~p] to ~p\n", [self(), Counter, TypeMsg, Pid]),
-  if Counter < MaxCounter ->
-    case TypeMsg of
-      0 -> Pid ! {self(), Counter, do_a_flip}, NextMsg = 1;
-      1 -> Pid ! {self(), Counter, fish}, NextMsg = 2;
-      2 -> Pid ! {self(), Counter, blah_blah}, NextMsg = 3;
-      3 -> Pid ! {self(), Counter, 555}, NextMsg = 0;
-      _ -> NextMsg = 0
-    end,
-    if Counter rem PauseCounter == 0 -> sleep(25);
-      true ->  sleep(5)
-    end,
-    sender(Pid, NextMsg, Counter + 1, Params);
-    true ->
-      stopping(Pid)
-  end.
+  if is_pid(Pid) ->
+		 {MaxCounter,PauseCounter}  = Params,
+		 write_log_Msg("~p: try send MSG: id=[~p] type=[~p] to ~p\n", [self(), Counter, TypeMsg, Pid]),
+		 if Counter < MaxCounter ->
+				case TypeMsg of
+					0 -> Pid ! {self(), Counter, do_a_flip}, NextMsg = 1;
+					1 -> Pid ! {self(), Counter, fish}, NextMsg = 2;
+					2 -> Pid ! {self(), Counter, blah_blah}, NextMsg = 3;
+					3 -> Pid ! {self(), Counter, 555}, NextMsg = 0;
+					_ -> NextMsg = 0
+				end,
+				if Counter rem PauseCounter == 0 -> sleep(25);
+				   true ->  sleep(5)
+				end,
+				sender(Pid, NextMsg, Counter + 1, Params);
+			true ->
+				stopping(Pid)
+		 end;
+ 	  true ->
+		write_log_Msg("~p: can't find reciever process:", [self(),Pid]),
+		sleep(10),
+		sender(Reciver, TypeMsg, Counter, Params)	
+   end.
 
 stopping(Pid) ->
   write_log_Msg("~p: Counter exeed \n", [self()]),

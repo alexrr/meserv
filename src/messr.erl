@@ -9,6 +9,7 @@
 %%%-------------------------------------------------------------------
 -module(messr).
 -author("child").
+-import(timer, [sleep/1]).
 
 %% API
 -export([init/1,start/0]).
@@ -19,10 +20,12 @@ init([]) ->
 
 start() ->
   write_log_Msg("~p: reciever started\n", [self()]),
+  sleep(10),
   ppr(0),
   {ok}.
 
 ppr(CountWait) ->
+  sleep(1),
   if CountWait > 5 ->
     write_log_Msg("~p: wait for ~p times, end working", [self(), CountWait]);
     true ->
