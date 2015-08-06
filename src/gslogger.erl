@@ -12,7 +12,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1, start_link/0, stop/0, log/1, log_str/1, upread/1, truncate/0, log_binary/2]).
+-export([start_link/1, start_link/0, stop/0, log/1, log_str/1, upread/1, truncate/0, log_binary/2, write_log_Msg/2]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -204,5 +204,12 @@ log_string(Fd, Str) ->
 
 warn(Fmt, As) ->
   io:format(user, "gslogger: " ++ Fmt, [As]).
+
+write_log_Msg(Str, Args) ->
+  Fmt = lists:flatten(io_lib:format(Str, Args)),
+  io:fwrite(Fmt),
+  gslogger:log_str(Fmt),
+  ok.
+
 
 

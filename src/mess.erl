@@ -7,12 +7,13 @@
 %%% Created : 20.05.2015 23:23
 %%%-------------------------------------------------------------------
 
--define(VERSION, 133).
+-define(VERSION, 135).
 -module(mess).
 -author("alexr").
 -import(string, [join/2, concat/2, str/2]).
 -import(timer, [sleep/1]).
 -import(messr_sv, [init/1,start_link/0]).
+-import(gslogger, [write_log_Msg/2]).
 -compile(export_all).
 
 start() ->
@@ -26,25 +27,25 @@ start() ->
    gslogger:start_link("log\\gnlogger.log"),
    gslogger:truncate(),
    write_log_Msg("~p: Ok\n",[self()]),
-   write_log_Msg("~p: Starting sender\n", [self()]),
-   Pid2 = spawn(fun() -> sender(messr_ch, 0, 0,{9, 3}) end),
-   sleep(2),
-   write_log_Msg("~p: Process sender started on ~p\n",[self(),Pid2]),
    write_log_Msg("~p: Starting reciever\n", [self()]),
    messr_sv:start_link(),
    {ok,Reciver_ch} = messr_sv:getchild(),
-%%   {ok,Pid1} = supervisor:start_child(messr_sv, Reciver_ch),
-   Pid1 = whereis(messr_ch),
+   {ok,Pid1} = supervisor:start_child(messr_sv, Reciver_ch),
+%%   Pid1 = whereis(messr_ch),
    Lchild = supervisor:which_children(messr_sv),
    write_log_Msg("\n============\nchilds:\n ~p\n", [Lchild]),
-   write_log_Msg("~p: Process reciever started on ~p", [self(),Pid1]).
+   write_log_Msg("~p: Process reciever started on ~p\n", [self(),Pid1]),
+   write_log_Msg("~p: Starting sender\n", [self()]),
+   Pid2 = spawn(fun() -> sender(Pid1, 0, 0,{9, 3}) end),
+   write_log_Msg("~p: Process sender started on ~p\n",[self(),Pid2]).
 
 sender(Reciver, TypeMsg, Counter, Params) ->
   if Counter == 0 ->
-    write_log_Msg("~p: sender ok\n",[self()])
+    write_log_Msg("~p: Sender to [~p]\n",[self(),Reciver])
   end,
-  Pid = whereis(Reciver),
+  Pid = Reciver,
   if is_pid(Pid) ->
+         write_log_Msg("~p: Try to send to ~p\n",[self(),Pid]),
 		 {MaxCounter,PauseCounter}  = Params,
 		 write_log_Msg("~p: try send MSG: id=[~p] type=[~p] to ~p\n", [self(), Counter, TypeMsg, Pid]),
 		 if Counter < MaxCounter ->
@@ -55,8 +56,7 @@ sender(Reciver, TypeMsg, Counter, Params) ->
 					3 -> Pid ! {self(), Counter, 555}, NextMsg = 0;
 					_ -> NextMsg = 0
 				end,
-				if Counter rem PauseCounter == 0 -> sleep(25);
-				   true ->  sleep(5)
+				if Counter rem PauseCounter == 0 -> sleep(25)
 				end,
 				sender(Pid, NextMsg, Counter + 1, Params);
 			true ->
@@ -77,12 +77,6 @@ stopping(Pid) ->
   after 200 ->
     write_log_Msg("~p: Recicer NOT stopped\n", [self()])
   end.
-
-write_log_Msg(Str, Args) ->
-  Fmt = lists:flatten(io_lib:format(Str, Args)),
-  io:fwrite(Fmt),
-  gslogger:log_str(Fmt),
-  ok.
 
 version() ->
     io:fwrite("\nHello my version is ~p!\n",[?VERSION]),

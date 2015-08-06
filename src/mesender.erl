@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 11. Апр. 2015 23:34
 %%%-------------------------------------------------------------------
--module(test_gs).
+-module(mesender).
 -author("alexr").
 
 -behaviour(gen_server).

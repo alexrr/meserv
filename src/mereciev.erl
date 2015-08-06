@@ -7,27 +7,28 @@
 %%% @end
 %%% Created : 03. May 2015 10:40
 %%%-------------------------------------------------------------------
--module(messr).
+-module(mereciev).
 -author("child").
 -import(timer, [sleep/1]).
+-import(gslogger, [write_log_Msg/2]).
 
 %% API
--export([init/1,start/0]).
+-export([init/1,start_link/0]).
 
 init([]) ->
   Pid1 = spawn(fun() -> ppr(0) end),
   {ok, Pid1}.
 
-start() ->
-  write_log_Msg("~p: reciever started\n", [self()]),
-  sleep(10),
-  ppr(0),
-  {ok}.
+start_link() ->
+  write_log_Msg("~p: Reciever started\n", [self()]),
+  Pid1 = spawn_link((fun() -> ppr(0) end)),
+  {ok, Pid1}.
 
 ppr(CountWait) ->
   sleep(1),
   if CountWait > 5 ->
-    write_log_Msg("~p: wait for ~p times, end working", [self(), CountWait]);
+    write_log_Msg("~p: wait for ~p times, end working", [self(), CountWait]),
+	{error, counter_exceed};
     true ->
       receive
         {From, Counter, do_a_flip} ->
@@ -52,10 +53,4 @@ ppr(CountWait) ->
 		end
       end
   end.
-
-write_log_Msg(Str, Args) ->
-  Fmt = lists:flatten(io_lib:format(Str, Args)),
-  io:fwrite(Fmt),
-  gslogger:log_str(Fmt),
-  ok.
 
