@@ -12,7 +12,7 @@
 -author("alexr").
 -import(string, [join/2, concat/2, str/2]).
 -import(timer, [sleep/1]).
--import(messr_sv, [init/1,start_link/0]).
+-import(messr_sv, [init/1,start_link/0,getPid4Msg/0]).
 -import(gslogger, [write_log_Msg/2]).
 -compile(export_all).
 
@@ -31,19 +31,26 @@ start() ->
    messr_sv:start_link(),
    {ok,Reciver_ch} = messr_sv:getchild(),
    {ok,Pid1} = supervisor:start_child(messr_sv, Reciver_ch),
-%%   Pid1 = whereis(messr_ch),
-   Lchild = supervisor:which_children(messr_sv),
-   write_log_Msg("\n============\nchilds:\n ~p\n", [Lchild]),
    write_log_Msg("~p: Process reciever started on ~p\n", [self(),Pid1]),
    write_log_Msg("~p: Starting sender\n", [self()]),
-   Pid2 = spawn(fun() -> sender(Pid1, 0, 0,{9, 3}) end),
+   Pid2 = spawn(fun() -> sender(messr_sv, 0, 0,{9, 3}) end),
    write_log_Msg("~p: Process sender started on ~p\n",[self(),Pid2]).
+
+-spec(getPidReciever() ->
+  {Pid :: pid()} | {Reason :: term()}).
+getPidReciever() ->
+	Res = getPid4Msg(),
+	case Res of
+		{ok,Pid} -> Pid;
+	    {error,Reson} ->
+  			write_log_Msg("\n============>Pid not found for reson:\n ~p\n", [Reson]),Reson
+end.
 
 sender(Reciver, TypeMsg, Counter, Params) ->
   if Counter == 0 ->
     write_log_Msg("~p: Sender to [~p]\n",[self(),Reciver])
   end,
-  Pid = Reciver,
+  Pid = getPidReciever(),
   if is_pid(Pid) ->
          write_log_Msg("~p: Try to send to ~p\n",[self(),Pid]),
 		 {MaxCounter,PauseCounter}  = Params,

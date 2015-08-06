@@ -27,7 +27,7 @@ start_link() ->
 ppr(CountWait) ->
   sleep(1),
   if CountWait > 5 ->
-    write_log_Msg("~p: wait for ~p times, end working", [self(), CountWait]),
+    write_log_Msg("~p: wait for ~p times, end working\n", [self(), CountWait]),
 	{error, counter_exceed};
     true ->
       receive
@@ -46,7 +46,7 @@ ppr(CountWait) ->
         _ ->
           write_log_Msg("~p: recieved uknown message\n", [self()]), ppr(0)
       after 200 ->
-        write_log_Msg("~p: no message ~p\n", [self(), CountWait]),
+        %%write_log_Msg("~p: no message ~p\n", [self(), CountWait]),
         if CountWait<0 -> ppr(CountWait);
 	        true -> 
 				ppr(CountWait + 1)

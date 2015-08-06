@@ -13,7 +13,7 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0,getchild/0]).
+-export([start_link/0,getchild/0,getPid4Msg/0]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -76,7 +76,30 @@ getchild() ->
   Shutdown = 2000,
   Type = worker,
 
-  AChild = {messr_ch, {mereciev, start_link, []},
+  AChild = {getchild_name(), {mereciev, start_link, []},
     Restart, Shutdown, Type, [mereciev]},
  {ok,AChild}.
+
+getchild_name() ->
+	messr_ch.
+
+-spec(getPid4Msg() ->
+  {ok, Pid :: pid()} | {error, Reason :: term()}).
+getPid4Msg() ->
+    getfromList(supervisor:which_children(?SERVER),getchild_name()).
+
+-spec(getfromList(_,term()) ->
+  {ok, Pid :: pid()} | {error, Reason :: term()}).
+getfromList([],_) ->
+  {error,notfound};
+getfromList([Child|ListT],ChName_to_found) ->
+  {ChName,Pid,_,_} = Child,
+  if ChName == ChName_to_found ->
+     {ok,Pid};
+   true -> 
+     getfromList(ListT,ChName_to_found)
+  end.
+
+  
+
 
