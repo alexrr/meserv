@@ -11,11 +11,16 @@
 -author("child").
 
 %% API
--export([init/1]).
+-export([init/1,start/0]).
 
 init([]) ->
   Pid1 = spawn(fun() -> ppr(0) end),
   {ok, Pid1}.
+
+start() ->
+  write_log_Msg("~p: reciever started\n", [self()]),
+  ppr(0),
+  {ok}.
 
 ppr(CountWait) ->
   if CountWait > 5 ->
@@ -36,9 +41,12 @@ ppr(CountWait) ->
           exit(0);
         _ ->
           write_log_Msg("~p: recieved uknown message\n", [self()]), ppr(0)
-      after 20 ->
+      after 200 ->
         write_log_Msg("~p: no message ~p\n", [self(), CountWait]),
-        ppr(CountWait + 1)
+        if CountWait<0 -> ppr(CountWait);
+	        true -> 
+				ppr(CountWait + 1)
+		end
       end
   end.
 

@@ -6,11 +6,13 @@
 %%% @end
 %%% Created : 20.05.2015 23:23
 %%%-------------------------------------------------------------------
+
+-define(VERSION, 131).
 -module(mess).
 -author("alexr").
 -import(string, [join/2, concat/2, str/2]).
 -import(timer, [sleep/1]).
--import(messr, [init/1]).
+-import(messr_sv, [init/1,start_link/0]).
 -compile(export_all).
 
 start() ->
@@ -18,20 +20,28 @@ start() ->
   %% ddd
 	%% new line for test
 	%% mega line
-  gambol(),
-  megaf(),
-  file:make_dir("log"),
-  gslogger:start_link("log\\gnlogger.log"),
-  gslogger:truncate(),
-  gslogger:log_str(ok),
-  gslogger:log_str("Start sender"),
-  {ok, Pid1} = messr:init([]),
-  Pid2 = spawn(fun() -> sender(Pid1, 0, 0,{55, 10}) end),
-  io:format(" Process reciever ~p started\n Process sender ~p started\n", [Pid1, Pid2]).
+   version(),
+   megaf(),
+   file:make_dir("log"),
+   gslogger:start_link("log\\gnlogger.log"),
+   gslogger:truncate(),
+   write_log_Msg("~p: Ok\n",[self()]),
+   write_log_Msg("~p: Starting sender\n", [self()]),
+   Pid2 = spawn(fun() -> sender(messr_ch, 0, 0,{9, 3}) end),
+   write_log_Msg("~p: Process sender started on ~p\n",[self(),Pid2]),
+   write_log_Msg("~p: Starting reciever\n", [self()]),
+   messr_sv:start_link(),
+   {ok,Reciver_ch} = messr_sv:getchild(),
+%%   {ok,Pid1} = supervisor:start_child(messr_sv, Reciver_ch),
+   Pid1 = whereis(messr_ch),
+   Lchild = supervisor:which_children(messr_sv),
+   write_log_Msg("\n============\nchilds:\n ~p\n", [Lchild]),
+   write_log_Msg("~p: Process reciever started on ~p", [self(),Pid1]).
 
-sender(Pid, TypeMsg, Counter, Params) ->
+sender(Reciver, TypeMsg, Counter, Params) ->
+  Pid = whereis(Reciver),
   {MaxCounter,PauseCounter}  = Params,
-  write_log_Msg("~p: try send MSG: id=[~p] type=[~p] from ~p\n", [self(), Counter, TypeMsg, Pid]),
+  write_log_Msg("~p: try send MSG: id=[~p] type=[~p] to ~p\n", [self(), Counter, TypeMsg, Pid]),
   if Counter < MaxCounter ->
     case TypeMsg of
       0 -> Pid ! {self(), Counter, do_a_flip}, NextMsg = 1;
@@ -64,8 +74,8 @@ write_log_Msg(Str, Args) ->
   gslogger:log_str(Fmt),
   ok.
 
-gambol()->
-    io:fwrite("\nHello Gambol!\n"),
+version() ->
+    io:fwrite("\nHello my version is ~p!\n",[?VERSION]),
 	ok.
 
 megaf()->
