@@ -47,12 +47,8 @@ getPidReciever() ->
 end.
 
 sender(Reciver, TypeMsg, Counter, Params) ->
-  if Counter == 0 ->
-    write_log_Msg("~p: Sender to [~p]\n",[self(),Reciver])
-  end,
   Pid = getPidReciever(),
   if is_pid(Pid) ->
-         write_log_Msg("~p: Try to send to ~p\n",[self(),Pid]),
 		 {MaxCounter,PauseCounter}  = Params,
 		 write_log_Msg("~p: try send MSG: id=[~p] type=[~p] to ~p\n", [self(), Counter, TypeMsg, Pid]),
 		 if Counter < MaxCounter ->
@@ -63,11 +59,28 @@ sender(Reciver, TypeMsg, Counter, Params) ->
 					3 -> Pid ! {self(), Counter, 555}, NextMsg = 0;
 					_ -> NextMsg = 0
 				end,
-				if Counter rem PauseCounter == 0 -> sleep(25)
+				write_log_Msg("~p: Msg sent\n",[self()]),
+		      receive
+                 {From, ack_msg} -> 
+                         	write_log_Msg("~p: Ack  recieved from ~p \n",[self(),From]);
+				 {From, _} ->
+                         	write_log_Msg("~p: Unkown msg from ~p \n",[self(),From])
+				after 40 ->
+                         	write_log_Msg("~p: Ack not recieved\n",[self()])
 				end,
-				sender(Pid, NextMsg, Counter + 1, Params);
+				if (Counter+1) rem PauseCounter == 0 -> 
+                	write_log_Msg("~p: Sleeping after ~p / ~p \n",[self(),Counter,PauseCounter]),
+					sleep(250),
+            	    write_log_Msg("~p: next MSG: id=[~p] type=[~p] to ~p\n", [self(), Counter + 1, NextMsg, Pid]),
+					sender(Reciver, NextMsg, Counter + 1, Params);
+                  true->
+            	    write_log_Msg("~p: next MSG: id=[~p] type=[~p] to ~p\n", [self(), Counter + 1, NextMsg, Pid]),
+     				sender(Reciver, NextMsg, Counter + 1, Params)
+				end;
 			true ->
-				stopping(Pid)
+				stopping(Pid),
+				sleep(10),
+   				sender(Reciver, 0, 1, Params)
 		 end;
  	  true ->
 		write_log_Msg("~p: can't find reciever process:", [self(),Pid]),
@@ -80,9 +93,9 @@ stopping(Pid) ->
   write_log_Msg("~p: Sending stop msg to ~p \n", [self(), Pid]),
   Pid ! {self(), stop},
   receive
-    {RPid, stop_ack} -> write_log_Msg("~p: Recicer ~p stopped ok \n", [self(), RPid])
+    {RPid, stop_ack} -> write_log_Msg("~p: Reciever ~p stopped ok \n", [self(), RPid])
   after 200 ->
-    write_log_Msg("~p: Recicer NOT stopped\n", [self()])
+    write_log_Msg("~p: Reciever NOT stopped\n", [self()])
   end.
 
 version() ->
