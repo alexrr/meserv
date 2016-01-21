@@ -210,6 +210,3 @@ write_log_Msg(Str, Args) ->
   io:fwrite(Fmt),
   gslogger:log_str(Fmt),
   ok.
-
-
-
